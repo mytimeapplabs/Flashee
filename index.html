@@ -21,24 +21,25 @@
     /* Header */
     header { background: white; padding: 12px 16px; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; }
     .header-center { flex: 1; display: flex; justify-content: center; }
-    .nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px; }
+    .nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; color: #475569; }
 
-    /* Logo SVG Option 2: Teal Flashee with Coral & Green Cards */
+    /* Logo SVG Option 2 */
     .app-logo { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
     .logo-svg { width: 36px; height: 36px; }
+    .logo-svg-large { width: 52px; height: 52px; }
     .logo-text { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
 
     /* View Sections */
     .view { display: none; padding: 16px; flex: 1; flex-direction: column; }
     .view.active { display: flex; }
 
-    /* Landing Page */
+    /* Centered Views */
     #landing-view { align-items: center; justify-content: center; text-align: center; }
-    #landing-view .logo-svg { width: 96px; height: 96px; }
-    #landing-view .logo-text { font-size: 48px; margin-top: 12px; }
+    #landing-view .logo-svg { width: 110px; height: 110px; }
+    #landing-view .logo-text { font-size: 52px; margin-top: 16px; }
 
     /* Decks Page */
-    .search-box { width: 100%; max-width: 450px; margin: 0 auto 16px auto; padding: 12px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; }
+    .search-box { width: 100%; max-width: 450px; margin: 0 auto 16px auto; padding: 12px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; display: block; }
     .decks-container { display: grid; grid-template-columns: 1fr; gap: 12px; max-width: 450px; margin: 0 auto; width: 100%; }
     .deck-panel { background: linear-gradient(135deg, #0d9488, #0f766e); color: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 80px; }
     .deck-panel:nth-child(2n) { background: linear-gradient(135deg, #6366f1, #4f46e5); }
@@ -55,23 +56,26 @@
     .btn-go { background: var(--green); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; width: 100%; }
 
     /* Flash Card Page */
-    .flash-status { height: 24px; text-align: center; font-size: 18px; font-weight: 800; margin-bottom: 8px; }
-    .card-counter { text-align: center; font-size: 14px; color: #64748b; margin-bottom: 12px; }
+    .flash-status { height: 28px; text-align: center; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+    .card-counter { text-align: center; font-size: 15px; color: #64748b; margin-bottom: 12px; }
     .card-wrapper { perspective: 1000px; width: 100%; max-width: 380px; height: 260px; margin: 0 auto; }
     .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s; transform-style: preserve-3d; cursor: pointer; }
     .card-inner.flipped { transform: rotateY(180deg); }
     .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; background: white; border: 2px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; padding: 20px; font-size: 24px; font-weight: 700; }
     .card-back { transform: rotateY(180deg); }
-    .speech-btn { position: absolute; top: 12px; right: 12px; background: #f1f5f9; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; display: none; }
 
-    .action-btns { display: flex; gap: 12px; width: 100%; max-width: 380px; margin: 20px auto 0 auto; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-    .action-btns.visible { opacity: 1; pointer-events: auto; }
+    /* Action Controls Row */
+    .action-row { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 380px; margin: 20px auto 0 auto; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .action-row.visible { opacity: 1; pointer-events: auto; }
     .btn-action { flex: 1; padding: 16px; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; color: white; cursor: pointer; }
     .btn-gotit { background: var(--green); }
     .btn-huh { background: var(--coral); }
+    .btn-speech { background: #e2e8f0; color: #1e293b; border: none; border-radius: 12px; width: 48px; height: 52px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
     /* Exit View */
-    #exit-view { align-items: center; justify-content: center; text-align: center; gap: 16px; }
+    #exit-view { display: none; flex-direction: column; min-height: 100vh; }
+    #exit-view.active { display: flex; }
+    .exit-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; padding: 16px; }
     .score-percentage { font-size: 64px; font-weight: 900; }
     .stat-text { font-size: 18px; color: #64748b; }
     .btn-return { background: var(--primary); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; }
@@ -117,14 +121,14 @@
       <button class="nav-btn" onclick="openPauseModal()">⏸️</button>
       <div class="header-center">
         <div class="app-logo">
-          <svg class="logo-svg" viewBox="0 0 100 100">
+          <svg class="logo-svg-large" viewBox="0 0 100 100">
             <rect x="25" y="15" width="45" height="60" rx="8" fill="#10b981" transform="rotate(-10 47 45)" />
             <rect x="35" y="25" width="45" height="60" rx="8" fill="#f43f5e" transform="rotate(10 57 55)" />
             <path d="M 30 20 L 65 20 L 50 45 L 60 45 L 35 80 L 42 53 L 32 53 Z" fill="#0d9488" stroke="#ffffff" stroke-width="2"/>
           </svg>
         </div>
       </div>
-      <button class="nav-btn" onclick="openExitModal()">🚪</button>
+      <button class="nav-btn" onclick="openExitModal()" style="font-size: 28px; font-weight: bold;">✕</button>
     </header>
     <div style="padding-top: 16px; display: flex; flex-direction: column; align-items: center;">
       <div id="flash-status" class="flash-status"></div>
@@ -135,13 +139,14 @@
           <div id="card-front" class="card-front">Front</div>
           <div id="card-back" class="card-back">
             <span id="back-text">Back</span>
-            <button id="speech-btn" class="speech-btn" onclick="speakBackText(event)">🔊</button>
           </div>
         </div>
       </div>
 
-      <div id="action-btns" class="action-btns">
+      <!-- Action Row with Centered Speech Button -->
+      <div id="action-row" class="action-row">
         <button class="btn-action btn-gotit" onclick="scoreCard(true)">Got It (✓)</button>
+        <button id="speech-btn" class="btn-speech" onclick="speakBackText(event)" style="display:none;">🔊</button>
         <button class="btn-action btn-huh" onclick="scoreCard(false)">Huh? (✗)</button>
       </div>
     </div>
@@ -161,7 +166,7 @@
         </div>
       </div>
     </header>
-    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;">
+    <div class="exit-content">
       <div id="exit-percentage" class="score-percentage">0%</div>
       <div id="exit-cards-count" class="stat-text"># Cards: 0</div>
       <div id="exit-time" class="stat-text">Time: 0m 0s</div>
@@ -185,8 +190,8 @@
         </select>
       </div>
       <div class="setting-row">
-        <label>Next Card Timer: <span id="timer-val">2</span>s</label>
-        <input type="range" id="setting-timer" min="1" max="5" value="2" oninput="document.getElementById('timer-val').innerText=this.value">
+        <label>Next Card Timer: <span id="timer-val">5</span>s</label>
+        <input type="range" id="setting-timer" min="1" max="10" value="5" oninput="document.getElementById('timer-val').innerText=this.value">
       </div>
       <div class="setting-row-inline">
         <label>Enable Scoring</label>
@@ -227,22 +232,25 @@
     let timerInterval = null;
     let autoNextTimeout = null;
 
-    // Register Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
 
-    // Navigation
     function navigateTo(viewId) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById(viewId).classList.add('active');
       if(viewId === 'decks-view') fetchDecks();
     }
 
-    // Load Persistent Settings
     function loadSettings() {
       const saved = JSON.parse(localStorage.getItem('flashee_settings') || '{}');
-      if (saved.timer) { document.getElementById('setting-timer').value = saved.timer; document.getElementById('timer-val').innerText = saved.timer; }
+      if (saved.timer) { 
+        document.getElementById('setting-timer').value = saved.timer; 
+        document.getElementById('timer-val').innerText = saved.timer; 
+      } else {
+        document.getElementById('setting-timer').value = 5;
+        document.getElementById('timer-val').innerText = 5;
+      }
       if (saved.scoring !== undefined) document.getElementById('setting-scoring').checked = saved.scoring;
       if (saved.haptics !== undefined) document.getElementById('setting-haptics').checked = saved.haptics;
     }
@@ -256,27 +264,60 @@
       localStorage.setItem('flashee_settings', JSON.stringify(settings));
     }
 
-    // Fetch Sheets Data
+    // Dynamic Sheet Tab Extraction & Ordering
     async function fetchDecks() {
       loadSettings();
       const container = document.getElementById('decks-list');
+      container.innerHTML = 'Loading decks...';
+
       try {
-        const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`);
-        const text = await res.text();
-        const json = JSON.parse(text.substring(47, text.length - 2));
+        const htmlRes = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/htmlview`);
+        const htmlText = await htmlRes.text();
         
-        // Extract tab info or construct default deck array
-        allDecks = [{ id: 'Sheet1', name: 'Words' }]; 
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        const tabElements = doc.querySelectorAll('#sheet-menu li a');
+
+        let rawDecks = [];
+        tabElements.forEach(tab => {
+          const rawName = tab.innerText.trim();
+          const match = rawName.match(/^(\d{3})\.\s*(.*)$/);
+          if (match) {
+            rawDecks.push({
+              order: parseInt(match[1]),
+              rawName: rawName,
+              cleanName: match[2]
+            });
+          } else {
+            rawDecks.push({
+              order: 999,
+              rawName: rawName,
+              cleanName: rawName
+            });
+          }
+        });
+
+        // Sort decks numerically by prefix code
+        rawDecks.sort((a, b) => a.order - b.order);
+        allDecks = rawDecks.map(d => ({ id: d.rawName, name: d.cleanName }));
+        
         renderDecks(allDecks);
       } catch(e) {
-        // Fallback for demonstration if CORS/gviz structure varies
-        allDecks = [{ id: '010 Words', name: 'Words' }, { id: '100 More Words', name: 'More Words' }];
+        // Fallback static list matching 010. Phrases and 020. Lesson 1
+        allDecks = [
+          { id: '010. Phrases', name: 'Phrases' },
+          { id: '020. Lesson 1', name: 'Lesson 1' }
+        ];
         renderDecks(allDecks);
       }
     }
 
     function renderDecks(decks) {
       const container = document.getElementById('decks-list');
+      if (decks.length === 0) {
+        container.innerHTML = 'No decks found.';
+        return;
+      }
       container.innerHTML = decks.map(d => `
         <div class="deck-panel" onclick="openDeckSettings('${d.id}', '${d.name}')">
           <div class="deck-title">${d.name}</div>
@@ -295,14 +336,13 @@
       selectedDeck = { id, name, cards: [] };
       document.getElementById('modal-deck-title').innerText = name;
       
-      // Fetch deck rows
       try {
         const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(id)}`);
         const csvText = await res.text();
         const rows = csvText.split('\n').map(r => r.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
         
-        selectedDeck.colAHeader = rows[0][0] || 'Col 1';
-        selectedDeck.colBHeader = rows[0][1] || 'Col 2';
+        selectedDeck.colAHeader = rows[0][0] || 'Col A';
+        selectedDeck.colBHeader = rows[0][1] || 'Col B';
         selectedDeck.cards = rows.slice(1).filter(r => r.length >= 2 && r[0]);
 
         const maxCards = selectedDeck.cards.length || 1;
@@ -311,7 +351,6 @@
         slider.value = maxCards;
         document.getElementById('cards-val').innerText = maxCards;
 
-        // Update Option Labels
         const select = document.getElementById('setting-show');
         select.options[0].text = `Show: ${selectedDeck.colAHeader} / Reveal: ${selectedDeck.colBHeader}`;
         select.options[1].text = `Show: ${selectedDeck.colBHeader} / Reveal: ${selectedDeck.colAHeader}`;
@@ -360,7 +399,7 @@
       currentSession.isFlipped = false;
 
       document.getElementById('card-inner').classList.remove('flipped');
-      document.getElementById('action-btns').classList.remove('visible');
+      document.getElementById('action-row').classList.remove('visible');
       document.getElementById('flash-status').innerText = '';
       document.getElementById('card-counter').innerText = `Card ${currentSession.currentIndex + 1} of ${currentSession.total}`;
 
@@ -371,10 +410,9 @@
       document.getElementById('card-front').innerText = frontText;
       document.getElementById('back-text').innerText = backText;
 
-      // Audio setup for Non-English side
       const speechBtn = document.getElementById('speech-btn');
       const langCode = detectLang(backHeader);
-      speechBtn.style.display = langCode ? 'block' : 'none';
+      speechBtn.style.display = langCode ? 'flex' : 'none';
       speechBtn.dataset.lang = langCode || '';
     }
 
@@ -402,11 +440,10 @@
       triggerHaptic();
       currentSession.isFlipped = true;
       document.getElementById('card-inner').classList.add('flipped');
-      document.getElementById('action-btns').classList.add('visible');
+      document.getElementById('action-row').classList.add('visible');
 
-      // Auto-progress timer
       autoNextTimeout = setTimeout(() => {
-        scoreCard(false); // Default unattempted as 0
+        scoreCard(false);
       }, currentSession.timerSec * 1000);
     }
 
