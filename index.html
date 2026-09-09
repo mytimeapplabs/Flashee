@@ -6,6 +6,7 @@
   <title>Flashee</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d9488">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='25' y='15' width='45' height='60' rx='8' fill='%2310b981' transform='rotate(-10 47 45)'/><rect x='35' y='25' width='45' height='60' rx='8' fill='%23f43f5e' transform='rotate(10 57 55)'/><path d='M 30 20 L 65 20 L 50 45 L 60 45 L 35 80 L 42 53 L 32 53 Z' fill='%230d9488' stroke='%23ffffff' stroke-width='2'/></svg>">
   <style>
     :root {
       --primary: #0d9488;
@@ -143,7 +144,6 @@
         </div>
       </div>
 
-      <!-- Action Row with Centered Speech Button -->
       <div id="action-row" class="action-row">
         <button class="btn-action btn-gotit" onclick="scoreCard(true)">Got It (✓)</button>
         <button id="speech-btn" class="btn-speech" onclick="speakBackText(event)" style="display:none;">🔊</button>
@@ -226,6 +226,8 @@
 
   <script>
     const SPREADSHEET_ID = '1avy9_9ziCrYE5dulbVMWD_610KIxFK2C8miTUoLlV7U';
+    const PUBLISHED_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRyXuL0jQAR6lmT__ACcNdS7pLU0Ah6fJj_XXVc8Gris7-7uUcLpGY2R6T_OV7NV698ZtTNRSK9yzFr/pub?output=csv';
+
     let allDecks = [];
     let selectedDeck = null;
     let currentSession = null;
@@ -264,52 +266,36 @@
       localStorage.setItem('flashee_settings', JSON.stringify(settings));
     }
 
-    // Dynamic Sheet Tab Extraction & Ordering
+    // Reliable Multi-Tab Fetching with Clean Prefix Stripping
     async function fetchDecks() {
       loadSettings();
       const container = document.getElementById('decks-list');
       container.innerHTML = 'Loading decks...';
 
-      try {
-        const htmlRes = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/htmlview`);
-        const htmlText = await htmlRes.text();
-        
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
-        const tabElements = doc.querySelectorAll('#sheet-menu li a');
+      // Configured list of tabs matching 3-digit prefix scheme
+      const defaultTabs = ['010. Phrases', '020. Lesson 1'];
+      let rawDecks = [];
 
-        let rawDecks = [];
-        tabElements.forEach(tab => {
-          const rawName = tab.innerText.trim();
-          const match = rawName.match(/^(\d{3})\.\s*(.*)$/);
-          if (match) {
-            rawDecks.push({
-              order: parseInt(match[1]),
-              rawName: rawName,
-              cleanName: match[2]
-            });
-          } else {
-            rawDecks.push({
-              order: 999,
-              rawName: rawName,
-              cleanName: rawName
-            });
-          }
-        });
-
-        // Sort decks numerically by prefix code
-        rawDecks.sort((a, b) => a.order - b.order);
-        allDecks = rawDecks.map(d => ({ id: d.rawName, name: d.cleanName }));
-        
-        renderDecks(allDecks);
-      } catch(e) {
-        // Fallback static list matching 010. Phrases and 020. Lesson 1
-        allDecks = [
-          { id: '010. Phrases', name: 'Phrases' },
-          { id: '020. Lesson 1', name: 'Lesson 1' }
-        ];
-        renderDecks(allDecks);
+      for (let rawName of defaultTabs) {
+        const match = rawName.match(/^(\d{3})\.\s*(.*)$/);
+        if (match) {
+          rawDecks.push({
+            order: parseInt(match[1]),
+            rawName: rawName,
+            cleanName: match[2]
+          });
+        } else {
+          rawDecks.push({
+            order: 999,
+            rawName: rawName,
+            cleanName: rawName
+          });
+        }
       }
+
+      rawDecks.sort((a, b) => a.order - b.order);
+      allDecks = rawDecks.map(d => ({ id: d.rawName, name: d.cleanName }));
+      renderDecks(allDecks);
     }
 
     function renderDecks(decks) {
@@ -337,7 +323,13 @@
       document.getElementById('modal-deck-title').innerText = name;
       
       try {
-        const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(id)}`);
+        let fetchUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(id)}`;
+        let res = await fetch(fetchUrl);
+        
+        if (!res.ok) {
+          res = await fetch(PUBLISHED_CSV_URL);
+        }
+
         const csvText = await res.text();
         const rows = csvText.split('\n').map(r => r.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
         
