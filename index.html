@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flashee</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d9488">
+  <style>
+    :root {
+      --primary: #0d9488;
+      --coral: #f43f5e;
+      --green: #10b981;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+    
+    /* Header */
+    header { background: white; padding: 12px 16px; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; }
+    .header-center { flex: 1; display: flex; justify-content: center; }
+    .nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px; }
+
+    /* Logo SVG Option 2: Teal Flashee with Coral & Green Cards */
+    .app-logo { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
+    .logo-svg { width: 36px; height: 36px; }
+    .logo-text { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+
+    /* View Sections */
+    .view { display: none; padding: 16px; flex: 1; flex-direction: column; }
+    .view.active { display: flex; }
+
+    /* Landing Page */
+    #landing-view { align-items: center; justify-content: center; text-align: center; }
+    #landing-view .logo-svg { width: 96px; height: 96px; }
+    #landing-view .logo-text { font-size: 48px; margin-top: 12px; }
+
+    /* Decks Page */
+    .search-box { width: 100%; max-width: 450px; margin: 0 auto 16px auto; padding: 12px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 16px; }
+    .decks-container { display: grid; grid-template-columns: 1fr; gap: 12px; max-width: 450px; margin: 0 auto; width: 100%; }
+    .deck-panel { background: linear-gradient(135deg, #0d9488, #0f766e); color: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 80px; }
+    .deck-panel:nth-child(2n) { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+    .deck-panel:nth-child(3n) { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .deck-panel:nth-child(4n) { background: linear-gradient(135deg, #ec4899, #be185d); }
+    .deck-title { font-size: 20px; font-weight: 700; }
+
+    /* Settings Popup */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; border-radius: 20px; width: 100%; max-width: 400px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .setting-row { display: flex; flex-direction: column; gap: 6px; }
+    .setting-row-inline { display: flex; justify-content: space-between; align-items: center; }
+    .btn-go { background: var(--green); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; width: 100%; }
+
+    /* Flash Card Page */
+    .flash-status { height: 24px; text-align: center; font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+    .card-counter { text-align: center; font-size: 14px; color: #64748b; margin-bottom: 12px; }
+    .card-wrapper { perspective: 1000px; width: 100%; max-width: 380px; height: 260px; margin: 0 auto; }
+    .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s; transform-style: preserve-3d; cursor: pointer; }
+    .card-inner.flipped { transform: rotateY(180deg); }
+    .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; background: white; border: 2px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; padding: 20px; font-size: 24px; font-weight: 700; }
+    .card-back { transform: rotateY(180deg); }
+    .speech-btn { position: absolute; top: 12px; right: 12px; background: #f1f5f9; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; display: none; }
+
+    .action-btns { display: flex; gap: 12px; width: 100%; max-width: 380px; margin: 20px auto 0 auto; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .action-btns.visible { opacity: 1; pointer-events: auto; }
+    .btn-action { flex: 1; padding: 16px; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; color: white; cursor: pointer; }
+    .btn-gotit { background: var(--green); }
+    .btn-huh { background: var(--coral); }
+
+    /* Exit View */
+    #exit-view { align-items: center; justify-content: center; text-align: center; gap: 16px; }
+    .score-percentage { font-size: 64px; font-weight: 900; }
+    .stat-text { font-size: 18px; color: #64748b; }
+    .btn-return { background: var(--primary); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- Landing View -->
+  <div id="landing-view" class="view active" onclick="navigateTo('decks-view')">
+    <div class="app-logo" style="flex-direction: column;">
+      <svg class="logo-svg" viewBox="0 0 100 100">
+        <rect x="25" y="15" width="45" height="60" rx="8" fill="#10b981" transform="rotate(-10 47 45)" />
+        <rect x="35" y="25" width="45" height="60" rx="8" fill="#f43f5e" transform="rotate(10 57 55)" />
+        <path d="M 30 20 L 65 20 L 50 45 L 60 45 L 35 80 L 42 53 L 32 53 Z" fill="#0d9488" stroke="#ffffff" stroke-width="2"/>
+      </svg>
+      <div class="logo-text">Flashee</div>
+    </div>
+  </div>
+
+  <!-- Decks View -->
+  <div id="decks-view" class="view">
+    <header>
+      <div class="header-center">
+        <div class="app-logo" onclick="navigateTo('landing-view')">
+          <svg class="logo-svg" viewBox="0 0 100 100">
+            <rect x="25" y="15" width="45" height="60" rx="8" fill="#10b981" transform="rotate(-10 47 45)" />
+            <rect x="35" y="25" width="45" height="60" rx="8" fill="#f43f5e" transform="rotate(10 57 55)" />
+            <path d="M 30 20 L 65 20 L 50 45 L 60 45 L 35 80 L 42 53 L 32 53 Z" fill="#0d9488" stroke="#ffffff" stroke-width="2"/>
+          </svg>
+          <div class="logo-text">Flashee</div>
+        </div>
+      </div>
+    </header>
+    <div style="padding-top: 16px;">
+      <input type="text" id="deck-search" class="search-box" placeholder="Search decks..." oninput="filterDecks()">
+      <div id="decks-list" class="decks-container">Loading decks...</div>
+    </div>
+  </div>
+
+  <!-- Flashcard View -->
+  <div id="card-view" class="view">
+    <header>
+      <button class="nav-btn" onclick="openPauseModal()">⏸️</button>
+      <div class="header-center">
+        <div class="app-logo">
+          <svg class="logo-svg" viewBox="0 0 100 100">
+            <rect x="25" y="15" width="45" height="60" rx="8" fill="#10b981" transform="rotate(-10 47 45)" />
+            <rect x="35" y="25" width="45" height="60" rx="8" fill="#f43f5e" transform="rotate(10 57 55)" />
+            <path d="M 30 20 L 65 20 L 50 45 L 60 45 L 35 80 L 42 53 L 32 53 Z" fill="#0d9488" stroke="#ffffff" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+      <button class="nav-btn" onclick="openExitModal()">🚪</button>
+    </header>
+    <div style="padding-top: 16px; display: flex; flex-direction: column; align-items: center;">
+      <div id="flash-status" class="flash-status"></div>
+      <div id="card-counter" class="card-counter">Card 1 of 10</div>
+      
+      <div class="card-wrapper" onclick="flipCard()">
+        <div id="card-inner" class="card-inner">
+          <div id="card-front" class="card-front">Front</div>
+          <div id="card-back" class="card-back">
+            <span id="back-text">Back</span>
+            <button id="speech-btn" class="speech-btn" onclick="speakBackText(event)">🔊</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="action-btns" class="action-btns">
+        <button class="btn-action btn-gotit" onclick="scoreCard(true)">Got It (✓)</button>
+        <button class="btn-action btn-huh" onclick="scoreCard(false)">Huh? (✗)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exit View -->
+  <div id="exit-view" class="view">
+    <header>
+      <div class="header-center">
+        <div class="app-logo">
+          <svg class="logo-svg" viewBox="0 0 100 100">
+            <rect x="25" y="15" width="45" height="60" rx="8" fill="#10b981" transform="rotate(-10 47 45)" />
+            <rect x="35" y="25" width="45" height="60" rx="8" fill="#f43f5e" transform="rotate(10 57 55)" />
+            <path d="M 30 20 L 65 20 L 50 45 L 60 45 L 35 80 L 42 53 L 32 53 Z" fill="#0d9488" stroke="#ffffff" stroke-width="2"/>
+          </svg>
+          <div class="logo-text">Flashee</div>
+        </div>
+      </div>
+    </header>
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;">
+      <div id="exit-percentage" class="score-percentage">0%</div>
+      <div id="exit-cards-count" class="stat-text"># Cards: 0</div>
+      <div id="exit-time" class="stat-text">Time: 0m 0s</div>
+      <button class="btn-return" onclick="navigateTo('decks-view')">Return to Decks</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal">
+    <div class="modal-content">
+      <h2 id="modal-deck-title">Deck Settings</h2>
+      <div class="setting-row">
+        <label>Cards to Flash: <span id="cards-val">10</span></label>
+        <input type="range" id="setting-cards" min="1" max="10" value="10" oninput="document.getElementById('cards-val').innerText=this.value">
+      </div>
+      <div class="setting-row">
+        <label>Show / Reveal Mode:</label>
+        <select id="setting-show">
+          <option value="1">Show: Col A / Reveal: Col B</option>
+          <option value="2">Show: Col B / Reveal: Col A</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>Next Card Timer: <span id="timer-val">2</span>s</label>
+        <input type="range" id="setting-timer" min="1" max="5" value="2" oninput="document.getElementById('timer-val').innerText=this.value">
+      </div>
+      <div class="setting-row-inline">
+        <label>Enable Scoring</label>
+        <input type="checkbox" id="setting-scoring" checked>
+      </div>
+      <div class="setting-row-inline">
+        <label>Enable Haptics</label>
+        <input type="checkbox" id="setting-haptics" checked>
+      </div>
+      <button class="btn-go" onclick="startSession()">Go 🚀</button>
+    </div>
+  </div>
+
+  <!-- Pause Modal -->
+  <div id="pause-modal" class="modal">
+    <div class="modal-content" style="text-align:center;">
+      <h2>Session Paused</h2>
+      <button class="btn-go" onclick="resumeSession()" style="margin-top:12px;">Resume</button>
+      <button class="btn-return" onclick="closePauseModal(); navigateTo('decks-view');" style="margin-top:8px;">Exit to Decks</button>
+    </div>
+  </div>
+
+  <!-- Exit Confirm Modal -->
+  <div id="exit-modal" class="modal">
+    <div class="modal-content" style="text-align:center;">
+      <h2>End Session?</h2>
+      <p style="margin:12px 0;">Are you sure you want to exit to results?</p>
+      <button class="btn-go" onclick="confirmExit()">Yes, End Session</button>
+      <button class="btn-return" onclick="closeExitModal()" style="margin-top:8px; background:#64748b;">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    const SPREADSHEET_ID = '1avy9_9ziCrYE5dulbVMWD_610KIxFK2C8miTUoLlV7U';
+    let allDecks = [];
+    let selectedDeck = null;
+    let currentSession = null;
+    let timerInterval = null;
+    let autoNextTimeout = null;
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+
+    // Navigation
+    function navigateTo(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      if(viewId === 'decks-view') fetchDecks();
+    }
+
+    // Load Persistent Settings
+    function loadSettings() {
+      const saved = JSON.parse(localStorage.getItem('flashee_settings') || '{}');
+      if (saved.timer) { document.getElementById('setting-timer').value = saved.timer; document.getElementById('timer-val').innerText = saved.timer; }
+      if (saved.scoring !== undefined) document.getElementById('setting-scoring').checked = saved.scoring;
+      if (saved.haptics !== undefined) document.getElementById('setting-haptics').checked = saved.haptics;
+    }
+
+    function saveSettings() {
+      const settings = {
+        timer: document.getElementById('setting-timer').value,
+        scoring: document.getElementById('setting-scoring').checked,
+        haptics: document.getElementById('setting-haptics').checked
+      };
+      localStorage.setItem('flashee_settings', JSON.stringify(settings));
+    }
+
+    // Fetch Sheets Data
+    async function fetchDecks() {
+      loadSettings();
+      const container = document.getElementById('decks-list');
+      try {
+        const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`);
+        const text = await res.text();
+        const json = JSON.parse(text.substring(47, text.length - 2));
+        
+        // Extract tab info or construct default deck array
+        allDecks = [{ id: 'Sheet1', name: 'Words' }]; 
+        renderDecks(allDecks);
+      } catch(e) {
+        // Fallback for demonstration if CORS/gviz structure varies
+        allDecks = [{ id: '010 Words', name: 'Words' }, { id: '100 More Words', name: 'More Words' }];
+        renderDecks(allDecks);
+      }
+    }
+
+    function renderDecks(decks) {
+      const container = document.getElementById('decks-list');
+      container.innerHTML = decks.map(d => `
+        <div class="deck-panel" onclick="openDeckSettings('${d.id}', '${d.name}')">
+          <div class="deck-title">${d.name}</div>
+          <div>➔</div>
+        </div>
+      `).join('');
+    }
+
+    function filterDecks() {
+      const q = document.getElementById('deck-search').value.toLowerCase();
+      const filtered = allDecks.filter(d => d.name.toLowerCase().includes(q));
+      renderDecks(filtered);
+    }
+
+    async function openDeckSettings(id, name) {
+      selectedDeck = { id, name, cards: [] };
+      document.getElementById('modal-deck-title').innerText = name;
+      
+      // Fetch deck rows
+      try {
+        const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(id)}`);
+        const csvText = await res.text();
+        const rows = csvText.split('\n').map(r => r.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+        
+        selectedDeck.colAHeader = rows[0][0] || 'Col 1';
+        selectedDeck.colBHeader = rows[0][1] || 'Col 2';
+        selectedDeck.cards = rows.slice(1).filter(r => r.length >= 2 && r[0]);
+
+        const maxCards = selectedDeck.cards.length || 1;
+        const slider = document.getElementById('setting-cards');
+        slider.max = maxCards;
+        slider.value = maxCards;
+        document.getElementById('cards-val').innerText = maxCards;
+
+        // Update Option Labels
+        const select = document.getElementById('setting-show');
+        select.options[0].text = `Show: ${selectedDeck.colAHeader} / Reveal: ${selectedDeck.colBHeader}`;
+        select.options[1].text = `Show: ${selectedDeck.colBHeader} / Reveal: ${selectedDeck.colAHeader}`;
+
+        document.getElementById('settings-modal').classList.add('active');
+      } catch(e) {
+        alert("Error loading deck cards.");
+      }
+    }
+
+    function triggerHaptic() {
+      if (document.getElementById('setting-haptics').checked && navigator.vibrate) {
+        navigator.vibrate(40);
+      }
+    }
+
+    function startSession() {
+      saveSettings();
+      document.getElementById('settings-modal').classList.remove('active');
+      
+      const count = parseInt(document.getElementById('setting-cards').value);
+      const option = document.getElementById('setting-show').value;
+      const shuffled = [...selectedDeck.cards].sort(() => 0.5 - Math.random()).slice(0, count);
+
+      currentSession = {
+        cards: shuffled,
+        total: count,
+        currentIndex: 0,
+        option: option,
+        scoring: document.getElementById('setting-scoring').checked,
+        timerSec: parseInt(document.getElementById('setting-timer').value),
+        score: 0,
+        startTime: Date.now(),
+        elapsedSec: 0,
+        isFlipped: false
+      };
+
+      timerInterval = setInterval(() => currentSession.elapsedSec++, 1000);
+      navigateTo('card-view');
+      renderCard();
+    }
+
+    function renderCard() {
+      clearTimeout(autoNextTimeout);
+      const card = currentSession.cards[currentSession.currentIndex];
+      currentSession.isFlipped = false;
+
+      document.getElementById('card-inner').classList.remove('flipped');
+      document.getElementById('action-btns').classList.remove('visible');
+      document.getElementById('flash-status').innerText = '';
+      document.getElementById('card-counter').innerText = `Card ${currentSession.currentIndex + 1} of ${currentSession.total}`;
+
+      const frontText = currentSession.option === "1" ? card[0] : card[1];
+      const backText = currentSession.option === "1" ? card[1] : card[0];
+      const backHeader = currentSession.option === "1" ? selectedDeck.colBHeader : selectedDeck.colAHeader;
+
+      document.getElementById('card-front').innerText = frontText;
+      document.getElementById('back-text').innerText = backText;
+
+      // Audio setup for Non-English side
+      const speechBtn = document.getElementById('speech-btn');
+      const langCode = detectLang(backHeader);
+      speechBtn.style.display = langCode ? 'block' : 'none';
+      speechBtn.dataset.lang = langCode || '';
+    }
+
+    function detectLang(headerName) {
+      const h = headerName.toLowerCase();
+      if (h.includes('spanish') || h.includes('español') || h.includes('es')) return 'es-ES';
+      if (h.includes('japanese') || h.includes('日本語') || h.includes('ja')) return 'ja-JP';
+      if (h.includes('chinese') || h.includes('中文') || h.includes('zh')) return 'zh-CN';
+      return null;
+    }
+
+    function speakBackText(event) {
+      event.stopPropagation();
+      const text = document.getElementById('back-text').innerText;
+      const lang = document.getElementById('speech-btn').dataset.lang;
+      if (text && lang && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function flipCard() {
+      if (currentSession.isFlipped) return;
+      triggerHaptic();
+      currentSession.isFlipped = true;
+      document.getElementById('card-inner').classList.add('flipped');
+      document.getElementById('action-btns').classList.add('visible');
+
+      // Auto-progress timer
+      autoNextTimeout = setTimeout(() => {
+        scoreCard(false); // Default unattempted as 0
+      }, currentSession.timerSec * 1000);
+    }
+
+    function scoreCard(isCorrect) {
+      clearTimeout(autoNextTimeout);
+      triggerHaptic();
+
+      const statusEl = document.getElementById('flash-status');
+      if (currentSession.scoring) {
+        if (isCorrect) {
+          currentSession.score++;
+          statusEl.innerText = "✓";
+          statusEl.style.color = "var(--green)";
+        } else {
+          statusEl.innerText = "✗";
+          statusEl.style.color = "var(--coral)";
+        }
+      }
+
+      setTimeout(() => {
+        currentSession.currentIndex++;
+        if (currentSession.currentIndex < currentSession.total) {
+          renderCard();
+        } else {
+          endSession();
+        }
+      }, 300);
+    }
+
+    function openPauseModal() {
+      clearInterval(timerInterval);
+      clearTimeout(autoNextTimeout);
+      document.getElementById('pause-modal').classList.add('active');
+    }
+
+    function resumeSession() {
+      document.getElementById('pause-modal').classList.remove('active');
+      timerInterval = setInterval(() => currentSession.elapsedSec++, 1000);
+    }
+
+    function openExitModal() {
+      openPauseModal();
+      document.getElementById('exit-modal').classList.add('active');
+    }
+
+    function closePauseModal() { document.getElementById('pause-modal').classList.remove('active'); }
+    function closeExitModal() { document.getElementById('exit-modal').classList.remove('active'); }
+
+    function confirmExit() {
+      closeExitModal();
+      closePauseModal();
+      endSession();
+    }
+
+    function endSession() {
+      clearInterval(timerInterval);
+      clearTimeout(autoNextTimeout);
+
+      const percent = currentSession.total > 0 ? Math.round((currentSession.score / currentSession.total) * 100) : 0;
+      const mins = Math.floor(currentSession.elapsedSec / 60);
+      const secs = currentSession.elapsedSec % 60;
+
+      const percentEl = document.getElementById('exit-percentage');
+      percentEl.innerText = `${percent}%`;
+      percentEl.style.color = percent >= 80 ? 'var(--green)' : percent >= 50 ? '#f59e0b' : 'var(--coral)';
+
+      document.getElementById('exit-cards-count').innerText = `# Cards: ${currentSession.currentIndex}`;
+      document.getElementById('exit-time').innerText = `Time: ${mins}m ${secs}s`;
+
+      navigateTo('exit-view');
+    }
+  </script>
+</body>
+</html>
