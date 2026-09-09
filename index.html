@@ -1,4 +1,4 @@
-<!-- Version v1.4 -->
+<!-- Version v1.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,7 +37,7 @@
     .view.active { display: flex; }
 
     /* Vertically Centered Views */
-    #landing-view { align-items: center; justify-content: center; text-align: center; }
+    #landing-view { min-height: 100vh; align-items: center; justify-content: center; text-align: center; }
     #landing-view .logo-svg { width: 110px; height: 110px; }
     #landing-view .logo-text { font-size: 52px; margin-top: 16px; }
 
@@ -62,12 +62,24 @@
     .flash-status { height: 28px; text-align: center; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
     .card-counter { text-align: center; font-size: 15px; color: #64748b; margin-bottom: 12px; }
     .card-wrapper { perspective: 1000px; width: 100%; max-width: 380px; height: 260px; margin: 0 auto; }
-    .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s; transform-style: preserve-3d; cursor: pointer; }
+    .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transform-style: preserve-3d; cursor: pointer; }
+    
+    /* Flip Animation only when explicitly flipping */
+    .card-inner.animate-flip { transition: transform 0.4s; }
     .card-inner.flipped { transform: rotateY(180deg); }
+
+    /* Flash Transition Animation for Next Card */
+    .card-inner.card-flash { animation: flashCard 0.25s ease-in-out; }
+    @keyframes flashCard {
+      0% { opacity: 0.3; transform: scale(0.96); }
+      50% { opacity: 0.8; transform: scale(1.02); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
     .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; background: white; border: 2px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; padding: 20px; font-size: 24px; font-weight: 700; }
     .card-back { transform: rotateY(180deg); }
 
-    /* Action Controls Row */
+    /* Action Controls Row - Order switched: Huh? (Left), Audio (Center), Got It (Right) */
     .action-row { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 380px; margin: 20px auto 0 auto; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .action-row.visible { opacity: 1; pointer-events: auto; }
     .btn-action { flex: 1; padding: 16px; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; color: white; cursor: pointer; }
@@ -146,10 +158,11 @@
         </div>
       </div>
 
+      <!-- Action Row: Huh? (Left), Audio (Center), Got It (Right) -->
       <div id="action-row" class="action-row">
-        <button class="btn-action btn-gotit" onclick="scoreCard(true)">Got It (✓)</button>
-        <button id="speech-btn" class="btn-speech" onclick="speakBackText(event)" style="display:none;">🔊</button>
         <button class="btn-action btn-huh" onclick="scoreCard(false)">Huh? (✗)</button>
+        <button id="speech-btn" class="btn-speech" onclick="speakBackText(event)" style="display:none;">🔊</button>
+        <button class="btn-action btn-gotit" onclick="scoreCard(true)">Got It (✓)</button>
       </div>
     </div>
   </div>
@@ -170,7 +183,7 @@
     </header>
     <div class="exit-content">
       <div id="exit-percentage" class="score-percentage">0%</div>
-      <div id="exit-cards-count" class="stat-text"># Cards: 0</div>
+      <div id="exit-cards-count" class="stat-text">Cards Played: 0</div>
       <div id="exit-time" class="stat-text">Time: 0m 0s</div>
       <button class="btn-return" onclick="navigateTo('decks-view')">Return to Decks</button>
     </div>
@@ -391,7 +404,13 @@
       const card = currentSession.cards[currentSession.currentIndex];
       currentSession.isFlipped = false;
 
-      document.getElementById('card-inner').classList.remove('flipped');
+      const cardInner = document.getElementById('card-inner');
+      cardInner.classList.remove('animate-flip', 'flipped', 'card-flash');
+
+      // Trigger flash animation for card reveal without flipping backward
+      void cardInner.offsetWidth; 
+      cardInner.classList.add('card-flash');
+
       document.getElementById('action-row').classList.remove('visible');
       document.getElementById('flash-status').innerText = '';
       document.getElementById('card-counter').innerText = `Card ${currentSession.currentIndex + 1} of ${currentSession.total}`;
@@ -432,7 +451,9 @@
       if (currentSession.isFlipped) return;
       triggerHaptic();
       currentSession.isFlipped = true;
-      document.getElementById('card-inner').classList.add('flipped');
+      
+      const cardInner = document.getElementById('card-inner');
+      cardInner.classList.add('animate-flip', 'flipped');
       document.getElementById('action-row').classList.add('visible');
 
       autoNextTimeout = setTimeout(() => {
@@ -497,7 +518,6 @@
       clearInterval(timerInterval);
       clearTimeout(autoNextTimeout);
 
-      // Score denominator uses cardsAttempted as strictly required by Req 290
       const attempted = currentSession.cardsAttempted;
       const percent = attempted > 0 ? Math.round((currentSession.score / attempted) * 100) : 0;
       const mins = Math.floor(currentSession.elapsedSec / 60);
@@ -507,7 +527,7 @@
       percentEl.innerText = `${percent}%`;
       percentEl.style.color = percent >= 80 ? 'var(--green)' : percent >= 50 ? '#f59e0b' : 'var(--coral)';
 
-      document.getElementById('exit-cards-count').innerText = `# Cards: ${attempted}`;
+      document.getElementById('exit-cards-count').innerText = `Cards Played: ${attempted}`;
       document.getElementById('exit-time').innerText = `Time: ${mins}m ${secs}s`;
 
       navigateTo('exit-view');
