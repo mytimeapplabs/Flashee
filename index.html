@@ -1,3 +1,4 @@
+<!-- Version v1.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +7,8 @@
   <title>Flashee</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d9488">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='25' y='15' width='45' height='60' rx='8' fill='%2310b981' transform='rotate(-10 47 45)'/><rect x='35' y='25' width='45' height='60' rx='8' fill='%23f43f5e' transform='rotate(10 57 55)'/><path d='M 30 20 L 65 20 L 50 45 L 60 45 L 35 80 L 42 53 L 32 53 Z' fill='%230d9488' stroke='%23ffffff' stroke-width='2'/></svg>">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <style>
     :root {
       --primary: #0d9488;
@@ -24,17 +26,17 @@
     .header-center { flex: 1; display: flex; justify-content: center; }
     .nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; color: #475569; }
 
-    /* Logo SVG Option 2 */
+    /* Logo Styling */
     .app-logo { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
     .logo-svg { width: 36px; height: 36px; }
-    .logo-svg-large { width: 52px; height: 52px; }
+    .logo-svg-large { width: 56px; height: 56px; }
     .logo-text { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
 
     /* View Sections */
     .view { display: none; padding: 16px; flex: 1; flex-direction: column; }
     .view.active { display: flex; }
 
-    /* Centered Views */
+    /* Vertically Centered Views */
     #landing-view { align-items: center; justify-content: center; text-align: center; }
     #landing-view .logo-svg { width: 110px; height: 110px; }
     #landing-view .logo-text { font-size: 52px; margin-top: 16px; }
@@ -48,7 +50,7 @@
     .deck-panel:nth-child(4n) { background: linear-gradient(135deg, #ec4899, #be185d); }
     .deck-title { font-size: 20px; font-weight: 700; }
 
-    /* Settings Popup */
+    /* Modals */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
     .modal.active { display: flex; }
     .modal-content { background: white; border-radius: 20px; width: 100%; max-width: 400px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
@@ -66,7 +68,7 @@
     .card-back { transform: rotateY(180deg); }
 
     /* Action Controls Row */
-    .action-row { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 380px; margin: 20px auto 0 auto; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .action-row { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 380px; margin: 20px auto 0 auto; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .action-row.visible { opacity: 1; pointer-events: auto; }
     .btn-action { flex: 1; padding: 16px; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; color: white; cursor: pointer; }
     .btn-gotit { background: var(--green); }
@@ -266,13 +268,11 @@
       localStorage.setItem('flashee_settings', JSON.stringify(settings));
     }
 
-    // Reliable Multi-Tab Fetching with Clean Prefix Stripping
     async function fetchDecks() {
       loadSettings();
       const container = document.getElementById('decks-list');
       container.innerHTML = 'Loading decks...';
 
-      // Configured list of tabs matching 3-digit prefix scheme
       const defaultTabs = ['010. Phrases', '020. Lesson 1'];
       let rawDecks = [];
 
@@ -371,6 +371,7 @@
         cards: shuffled,
         total: count,
         currentIndex: 0,
+        cardsAttempted: 0,
         option: option,
         scoring: document.getElementById('setting-scoring').checked,
         timerSec: parseInt(document.getElementById('setting-timer').value),
@@ -411,8 +412,8 @@
     function detectLang(headerName) {
       const h = headerName.toLowerCase();
       if (h.includes('spanish') || h.includes('español') || h.includes('es')) return 'es-ES';
-      if (h.includes('japanese') || h.includes('日本語') || h.includes('ja')) return 'ja-JP';
-      if (h.includes('chinese') || h.includes('中文') || h.includes('zh')) return 'zh-CN';
+      if (h.includes('japanese') || h.includes('日本語') || h.includes('ja') || h.includes('jp')) return 'ja-JP';
+      if (h.includes('chinese') || h.includes('中文') || h.includes('zh') || h.includes('cn')) return 'zh-CN';
       return null;
     }
 
@@ -442,6 +443,8 @@
     function scoreCard(isCorrect) {
       clearTimeout(autoNextTimeout);
       triggerHaptic();
+
+      currentSession.cardsAttempted++;
 
       const statusEl = document.getElementById('flash-status');
       if (currentSession.scoring) {
@@ -494,7 +497,9 @@
       clearInterval(timerInterval);
       clearTimeout(autoNextTimeout);
 
-      const percent = currentSession.total > 0 ? Math.round((currentSession.score / currentSession.total) * 100) : 0;
+      // Score denominator uses cardsAttempted as strictly required by Req 290
+      const attempted = currentSession.cardsAttempted;
+      const percent = attempted > 0 ? Math.round((currentSession.score / attempted) * 100) : 0;
       const mins = Math.floor(currentSession.elapsedSec / 60);
       const secs = currentSession.elapsedSec % 60;
 
@@ -502,7 +507,7 @@
       percentEl.innerText = `${percent}%`;
       percentEl.style.color = percent >= 80 ? 'var(--green)' : percent >= 50 ? '#f59e0b' : 'var(--coral)';
 
-      document.getElementById('exit-cards-count').innerText = `# Cards: ${currentSession.currentIndex}`;
+      document.getElementById('exit-cards-count').innerText = `# Cards: ${attempted}`;
       document.getElementById('exit-time').innerText = `Time: ${mins}m ${secs}s`;
 
       navigateTo('exit-view');
