@@ -1,4 +1,4 @@
-<!-- Version v1.5 -->
+<!-- Version v1.6 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -79,7 +79,7 @@
     .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; background: white; border: 2px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; padding: 20px; font-size: 24px; font-weight: 700; }
     .card-back { transform: rotateY(180deg); }
 
-    /* Action Controls Row - Order switched: Huh? (Left), Audio (Center), Got It (Right) */
+    /* Action Controls Row - Order: Huh? (Left), Audio (Center), Got It (Right) */
     .action-row { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 380px; margin: 20px auto 0 auto; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .action-row.visible { opacity: 1; pointer-events: auto; }
     .btn-action { flex: 1; padding: 16px; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; color: white; cursor: pointer; }
@@ -242,6 +242,7 @@
   <script>
     const SPREADSHEET_ID = '1avy9_9ziCrYE5dulbVMWD_610KIxFK2C8miTUoLlV7U';
     const PUBLISHED_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRyXuL0jQAR6lmT__ACcNdS7pLU0Ah6fJj_XXVc8Gris7-7uUcLpGY2R6T_OV7NV698ZtTNRSK9yzFr/pub?output=csv';
+    const APPS_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyw0VfgECOCNPNjo382pQoXDBHnDXErUeVXKvmE0g8lpvmAWf6LN10GjPRcfeiCJEU1bw/exec';
 
     let allDecks = [];
     let selectedDeck = null;
@@ -286,10 +287,23 @@
       const container = document.getElementById('decks-list');
       container.innerHTML = 'Loading decks...';
 
-      const defaultTabs = ['010. Phrases', '020. Lesson 1'];
+      let fetchedTabs = [];
+
+      try {
+        const response = await fetch(APPS_SCRIPT_WEBAPP_URL);
+        if (response.ok) {
+          fetchedTabs = await response.json();
+        } else {
+          throw new Error('Failed to fetch tabs from Apps Script endpoint');
+        }
+      } catch (e) {
+        console.warn('Apps Script fetch failed, using fallback tabs:', e);
+        fetchedTabs = ['010. Phrases', '020. Lesson 1'];
+      }
+
       let rawDecks = [];
 
-      for (let rawName of defaultTabs) {
+      for (let rawName of fetchedTabs) {
         const match = rawName.match(/^(\d{3})\.\s*(.*)$/);
         if (match) {
           rawDecks.push({
